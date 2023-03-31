@@ -1,7 +1,7 @@
 import { Log } from '../utils/log'
 import { Sequelize } from 'sequelize'
 
-import {UserModel} from '../models/user'
+import { UserModel } from '../models/user'
 
 export class DBConnect {
   public connection: Sequelize | null
@@ -37,6 +37,6 @@ export class DBConnect {
   }
 
   public dbInit() {
-    UserModel(this.connection).sync({alter: true})
+    UserModel(this.connection).sync({ alter: true })
   }
 }

@@ -3,11 +3,12 @@ import bodyParser from 'body-parser'
 import { createServer, Server } from 'http'
 import cors from 'cors'
 import UserDomain from './domain/user'
-import {UserModel} from './models/user'
+import { UserModel } from './models/user'
 
 import { DBConnect } from './db/dbconnect'
 import { Sequelize } from 'sequelize'
 import UserHandler from './handlers/user'
+import { errorHandler } from './validator/validatorError'
 
 class MusicPlayerAPIService {
   public static readonly PORT: number = 5000
@@ -37,13 +38,14 @@ class MusicPlayerAPIService {
 
   private setupRoutes(): void {
     const userDomain = new UserDomain(this.dbConnection, 'users', UserModel(this.dbConnection))
-    
+
     new UserHandler(this.expressApp, userDomain)
   }
 
   private listen(): void {
     this.expressApp.use(bodyParser.urlencoded({ extended: false }))
     this.expressApp.use(bodyParser.json())
+    this.expressApp.use(errorHandler)
     this.server.listen(this.port, () => {
       process.stdout.write(`Running server on port ${this.port}\n`)
     })
