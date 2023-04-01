@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import { createServer, Server } from 'http'
 import cors from 'cors'
 import UserDomain from './domain/user'
-import { UserModel } from './models/user'
+import UserModel from './models/user'
 
 import { DBConnect } from './db/dbconnect'
 import { Sequelize } from 'sequelize'
@@ -16,9 +16,9 @@ class MusicPlayerAPIService {
   private port: string | number
   private expressApp: express.Application
   private server: Server
-  private dbConnection: Sequelize | null
+  private dbConnection: Sequelize
 
-  constructor(dbConnection: Sequelize | null) {
+  constructor(dbConnection: Sequelize) {
     this.port = process.env.SERVER_PORT || MusicPlayerAPIService.PORT
 
     this.expressApp = express()
@@ -62,7 +62,14 @@ async function musicPlayerApp() {
     dbPass: process.env.DB_PASS || 'mysecretpassword',
   }
   const pgConnect = new DBConnect(env.dbHost, env.dbName, env.dbUser, env.dbPass)
-  await pgConnect.connect()
+
+  try {
+    // check if db is already connected
+    // if db connection is successful, it will automatically create table.
+    pgConnect.dbInit()
+  } catch (err) {
+    console.error(err)
+  }
 
   const app = new MusicPlayerAPIService(pgConnect.getConnection()).app
   return app
