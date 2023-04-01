@@ -1,4 +1,4 @@
-import { Length, IsNotEmpty, MinLength, MaxLength, IsEmail, IsDateString } from 'class-validator'
+import { Length, IsNotEmpty, MaxLength, IsEmail, IsDateString } from 'class-validator'
 export class CreateUserRequestRule {
   @MaxLength(100)
   @IsNotEmpty()
