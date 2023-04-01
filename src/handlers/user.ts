@@ -47,6 +47,7 @@ export default class UserHandler extends BaseHandler {
         payload.password,
         payload.dateOfBirth,
         payload.address,
+        payload.phoneNumber
       )
       res.status(HttpStatusCode.OK).json(this.resBody(id))
     } catch (err: any) {

@@ -1,4 +1,4 @@
-import { Length, IsNotEmpty, MaxLength, IsEmail, IsDateString } from 'class-validator'
+import { Length, IsNotEmpty, MaxLength, IsEmail, IsDateString, IsOptional } from 'class-validator'
 export class CreateUserRequestRule {
   @MaxLength(100)
   @IsNotEmpty()
@@ -10,9 +10,11 @@ export class CreateUserRequestRule {
   @Length(8, 30)
   password!: string
 
+  @IsOptional()
   @MaxLength(50)
   address!: string
 
+  @IsOptional()
   @IsDateString(
     {},
     {
@@ -20,4 +22,8 @@ export class CreateUserRequestRule {
     },
   )
   dateOfBirth!: string
+
+  @IsOptional()
+  @MaxLength(10)
+  phone!: string
 }

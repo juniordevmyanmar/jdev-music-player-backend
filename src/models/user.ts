@@ -81,4 +81,4 @@ const UserModel = (sequelize: Sequelize) => {
   return User
 }
 
-exports.UserModel = UserModel
+export default UserModel
