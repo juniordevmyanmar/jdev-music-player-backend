@@ -1,7 +1,8 @@
-import { Sequelize } from 'sequelize'
+import { Sequelize, UniqueConstraintError, ValidationErrorItem } from 'sequelize'
 import { Log } from '../utils/log'
 import BaseDomain from './base'
-import HttpStatusCode from '../enum/httpstatus'
+import { ValidationReason } from '../types/validationErrorType'
+import { UserAlreadyExistsError } from '../errors/UserAlreadyExistError'
 
 export default class UserDomain extends BaseDomain {
   private user: any
@@ -17,7 +18,7 @@ export default class UserDomain extends BaseDomain {
     password?: string,
     dateOfBirth?: string,
     address?: string,
-  ): Promise<{ id: string | null; code: number; message: string }> {
+  ): Promise<{ id: string | null }> {
     var id = ''
     try {
       const user = await this.user.create({
@@ -30,12 +31,22 @@ export default class UserDomain extends BaseDomain {
       id = user.id
     } catch (e: any) {
       Log.error(`UserDomain::createUser ${e.stack}`)
-      return {
-        id: id,
-        code: HttpStatusCode.UNPROCESSABLE_ENTITY,
-        message: 'user associated to that email already exists',
+
+      if (e instanceof UniqueConstraintError) {
+        if (e.errors.length > 0) {
+          let rawErrors: Array<ValidationReason> = []
+          rawErrors = e.errors.map((error: ValidationErrorItem) => ({
+            fieldName: error?.path,
+            message: {
+              key: error.path,
+              value: error.path + ' already exist',
+            },
+          }))
+          throw new UserAlreadyExistsError('failed to create user', rawErrors)
+        }
+        throw e
       }
     }
-    return { id: id, code: HttpStatusCode.OK, message: 'success' }
+    return { id: id }
   }
 }

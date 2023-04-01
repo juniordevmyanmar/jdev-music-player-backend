@@ -4,7 +4,7 @@ import { Sequelize } from 'sequelize'
 import { UserModel } from '../models/user'
 
 export class DBConnect {
-  public connection: Sequelize | null
+  private connection: Sequelize | null
   private dbHost: string
   private dbName: string
   private dbUser: string
@@ -16,6 +16,8 @@ export class DBConnect {
     this.dbName = dbName
     this.dbUser = dbUser
     this.dbPass = dbPass
+
+    this.connect()
   }
 
   public async connect() {

@@ -19,8 +19,9 @@ class MusicPlayerAPIService {
   private dbConnection: Sequelize | null
 
   constructor(dbConnection: Sequelize | null) {
-    this.expressApp = express()
     this.port = process.env.SERVER_PORT || MusicPlayerAPIService.PORT
+
+    this.expressApp = express()
     this.expressApp.use(cors())
     this.expressApp.use(express.json())
 
@@ -46,6 +47,7 @@ class MusicPlayerAPIService {
     this.expressApp.use(bodyParser.urlencoded({ extended: false }))
     this.expressApp.use(bodyParser.json())
     this.expressApp.use(errorHandler)
+
     this.server.listen(this.port, () => {
       process.stdout.write(`Running server on port ${this.port}\n`)
     })
