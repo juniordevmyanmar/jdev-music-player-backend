@@ -2,7 +2,12 @@ import { Sequelize, UniqueConstraintError, ValidationErrorItem } from 'sequelize
 import { Log } from '../utils/log'
 import BaseDomain from './base'
 import { ValidationReason } from '../types/validationErrorType'
-import { UserAlreadyExistsError } from '../errors/UserAlreadyExistError'
+import { UserAlreadyExistsError } from '../errors/userAlreadyExistError'
+import { InvalidUserLoginError } from '../errors/invalidUserLogin'
+import HttpStatusCode from '../enum/httpstatus'
+import JWT from '../utils/jwt'
+
+import bcrypt from 'bcrypt'
 
 export default class UserDomain extends BaseDomain {
   private user: any
@@ -48,5 +53,33 @@ export default class UserDomain extends BaseDomain {
       }
     }
     return { id: id }
+  }
+
+  public async loginUser(email: string, password: string): Promise<{ token: string | null }> {
+    var encryptedKey = ''
+    try {
+      const user = await this.user.findOne({
+        where: {
+          email: email,
+        },
+      })
+
+      // invalid email: findOne return null
+      if (user === null) {
+        throw new InvalidUserLoginError("user doesn't exist")
+      }
+
+      // validate password
+      if (!bcrypt.compareSync(password, user.password)) {
+        throw new InvalidUserLoginError('invalid username or password')
+      }
+
+      encryptedKey = await JWT.encryption(user)
+    } catch (e: any) {
+      Log.error(`UserDomain::loginUser ${e.stack}`)
+
+      throw e
+    }
+    return { token: encryptedKey }
   }
 }

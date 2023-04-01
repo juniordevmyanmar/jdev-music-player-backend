@@ -2,7 +2,9 @@ import express from 'express'
 import * as core from 'express-serve-static-core'
 import RequestValidator from '../validator/requestValidator'
 import { CreateUserRequestRule } from '../validator/rules/register'
-import { UserAlreadyExistsError } from '../errors/UserAlreadyExistError'
+import { LoginRequestRule } from '../validator/rules/login'
+import { UserAlreadyExistsError } from '../errors/userAlreadyExistError'
+import { InvalidUserLoginError } from '../errors/invalidUserLogin'
 
 import BaseHandler from './base'
 import HttpStatusCode from '../enum/httpstatus'
@@ -23,7 +25,8 @@ export default class UserHandler extends BaseHandler {
   }
 
   private instantiateRoute(): void {
-    this.app.post('/user', RequestValidator.validate(CreateUserRequestRule), this.createUser.bind(this))
+    this.app.post('/register', RequestValidator.validate(CreateUserRequestRule), this.createUser.bind(this))
+    this.app.post('/login', RequestValidator.validate(LoginRequestRule), this.userSignUp.bind(this))
   }
 
   private async createUser(
@@ -52,6 +55,29 @@ export default class UserHandler extends BaseHandler {
         return
       }
       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json(this.internalServerError('Failed to set User'))
+    }
+  }
+
+  private async userSignUp(
+    req: core.Request<
+      {},
+      { data: { name: string; email?: string; password?: string; dateOfBirth?: string; address?: string } },
+      any,
+      Record<string, any>
+    >,
+    res: core.Response<any, Record<string, any>, number>,
+  ) {
+    const payload = req.body
+
+    try {
+      const { token } = await this.userDomain.loginUser(payload.email, payload.password)
+      res.status(HttpStatusCode.OK).json(this.resBody({ token: token }))
+    } catch (err: any) {
+      if (err instanceof InvalidUserLoginError) {
+        res.status(HttpStatusCode.BAD_REQUEST).json(this.badRequestError(err.message, err.errors()))
+        return
+      }
+      res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json(this.internalServerError('user login failed'))
     }
   }
 }
