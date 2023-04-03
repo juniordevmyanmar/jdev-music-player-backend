@@ -9,6 +9,7 @@ import { InvalidUserLoginError } from '../errors/invalidUserLogin'
 import BaseHandler from './base'
 import HttpStatusCode from '../enum/httpstatus'
 import UserDomain from '../domain/user'
+import { UserNotFoundError } from '../errors/userNotFoundError'
 
 export default class UserHandler extends BaseHandler {
   private app: express.Application
@@ -26,7 +27,9 @@ export default class UserHandler extends BaseHandler {
 
   private instantiateRoute(): void {
     this.app.post('/register', RequestValidator.validate(CreateUserRequestRule), this.createUser.bind(this))
-    this.app.post('/login', RequestValidator.validate(LoginRequestRule), this.userSignUp.bind(this))
+    this.app.post('/login', RequestValidator.validate(LoginRequestRule), this.getSingleUser.bind(this))
+
+    this.app.get('/user/:id', this.getSingleUser.bind(this))
   }
 
   private async createUser(
@@ -47,7 +50,7 @@ export default class UserHandler extends BaseHandler {
         payload.password,
         payload.dateOfBirth,
         payload.address,
-        payload.phoneNumber
+        payload.phone,
       )
       res.status(HttpStatusCode.OK).json(this.resBody(id))
     } catch (err: any) {
@@ -75,6 +78,29 @@ export default class UserHandler extends BaseHandler {
       res.status(HttpStatusCode.OK).json(this.resBody({ token: token }))
     } catch (err: any) {
       if (err instanceof InvalidUserLoginError) {
+        res.status(HttpStatusCode.BAD_REQUEST).json(this.badRequestError(err.message, err.errors()))
+        return
+      }
+      res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json(this.internalServerError('user login failed'))
+    }
+  }
+
+  private async getSingleUser(
+    req: core.Request<
+      {
+        id: string
+      },
+      { data: { name: string; email?: string; password?: string; dateOfBirth?: string; address?: string } },
+      any,
+      Record<string, any>
+    >,
+    res: core.Response<any, Record<string, any>, number>,
+  ) {
+    try {
+      const { user } = await this.userDomain.getUser(req.params.id)
+      res.status(HttpStatusCode.OK).json(this.resBody({ user: user }))
+    } catch (err: any) {
+      if (err instanceof UserNotFoundError) {
         res.status(HttpStatusCode.BAD_REQUEST).json(this.badRequestError(err.message, err.errors()))
         return
       }

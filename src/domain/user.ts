@@ -4,6 +4,7 @@ import BaseDomain from './base'
 import { ValidationReason } from '../types/validationErrorType'
 import { UserAlreadyExistsError } from '../errors/userAlreadyExistError'
 import { InvalidUserLoginError } from '../errors/invalidUserLogin'
+import { UserNotFoundError } from '../errors/userNotFoundError'
 import HttpStatusCode from '../enum/httpstatus'
 import JWT from '../utils/jwt'
 
@@ -23,7 +24,7 @@ export default class UserDomain extends BaseDomain {
     password?: string,
     dateOfBirth?: string,
     address?: string,
-    phone?: string
+    phone?: string,
   ): Promise<{ id: string | null }> {
     var id = ''
     try {
@@ -83,5 +84,26 @@ export default class UserDomain extends BaseDomain {
       throw e
     }
     return { token: encryptedKey }
+  }
+
+  public async getUser(userId: string): Promise<{ user: { [key: string]: string } }> {
+    try {
+      const user = await this.user.findOne({
+        where: {
+          id: userId,
+        },
+      })
+
+      // invalid email: findOne return null
+      if (user === null) {
+        throw new UserNotFoundError('user not found')
+      }
+
+      return { user: { userName: user.name, email: user.email, phone: user.phone } }
+    } catch (e: any) {
+      Log.error(`UserDomain::getUser ${e.stack}`)
+
+      throw e
+    }
   }
 }
