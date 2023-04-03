@@ -23,7 +23,7 @@ export default class UserDomain extends BaseDomain {
     password?: string,
     dateOfBirth?: string,
     address?: string,
-    phone?: string
+    phone?: string,
   ): Promise<{ id: string | null }> {
     var id = ''
     try {

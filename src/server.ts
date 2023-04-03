@@ -9,6 +9,7 @@ import { DBConnect } from './db/dbconnect'
 import { Sequelize } from 'sequelize'
 import UserHandler from './handlers/user'
 import { errorHandler } from './validator/validatorError'
+import HealthCheckHandler from './handlers/health'
 
 class MusicPlayerAPIService {
   public static readonly PORT: number = 5000
@@ -41,6 +42,7 @@ class MusicPlayerAPIService {
     const userDomain = new UserDomain(this.dbConnection, 'users', UserModel(this.dbConnection))
 
     new UserHandler(this.expressApp, userDomain)
+    new HealthCheckHandler(this.expressApp)
   }
 
   private listen(): void {
