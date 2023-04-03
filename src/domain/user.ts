@@ -101,7 +101,7 @@ export default class UserDomain extends BaseDomain {
 
       return { user: { userName: user.name, email: user.email, phone: user.phone } }
     } catch (e: any) {
-      Log.error(`UserDomain::getUser ${e.stack}`)
+      Log.error(`UserDomain::getUser ${e?.stack}`)
 
       throw e
     }
