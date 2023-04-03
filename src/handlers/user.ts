@@ -90,7 +90,7 @@ export default class UserHandler extends BaseHandler {
       {
         id: string
       },
-      { data: { name: string; email?: string; password?: string; dateOfBirth?: string; address?: string } },
+      any,
       any,
       Record<string, any>
     >,
