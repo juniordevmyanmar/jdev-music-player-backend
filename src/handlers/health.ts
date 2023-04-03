@@ -23,7 +23,7 @@ export default class HealthCheckHandler extends BaseHandler {
   private async healthCheck(
     req: core.Request<
       {},
-      { data: { name: string; email?: string; password?: string; dateOfBirth?: string; address?: string } },
+      any,
       any,
       Record<string, any>
     >,
